@@ -1,8 +1,22 @@
+"""
+I have been working on this bot for past couple days and will keep tweaking and adding more features into it
+Right now, It is implemented in a way that ideally it would have only one open position
+
+This is an SMA Crossover strategy of 13 and 52 bars on 1-minute time frame.
+I have only traded it on the "EURUSD" and "BTCUSD"
+There is not much alpha from what I could gather. 
+
+"""
+
+
+
 #Importing the necessary libararies
 import MetaTrader5 as mt5
 import pandas as pd
 import time
 from datetime import datetime as dt
+
+#Ignore this, It is just my way of looking at an animated rainbow in the terminal
 from colorama import Back
 
 #setting variables which will be used 
@@ -28,6 +42,7 @@ if not mt5.initialize():
 Functions
 """
 
+#Checking If the Order was executed, on requote due to change in price, It will send a new order
 def order_status(order):
     if len(order) != 0:
         if order[7] == 'Requote':
@@ -45,7 +60,7 @@ def order_status(order):
         print(Back.BLUE + "Checking Execution: ", order)
 
 
-#Function to figure out if the positions or short or long positions
+#Function to figure out if the positions are short or long positions
 def position_type():
     positions = mt5.positions_get()
     try:
@@ -66,7 +81,7 @@ def position_type():
 
     return long_pos, short_pos
 
-#Getting the Order Number and the position size
+#Getting the Order Number, position size and Order Ticket Number
 def get_ticket_data():
     positions = mt5.positions_get()
     if len(positions) != 0:
@@ -79,7 +94,7 @@ def get_ticket_data():
 #Getting historical data and generating indicators etc.
 def train_data():
 
-    # To Generate Signals from a different timeframe and implement it on a different one
+    # To Generate Signals from a different timeframe and implement it on a different timeframe
 
     # signal = mt5.copy_rates_from_pos(symbol, mt5.TIMEFRAME_M1, 0, 100)
     # signal_frame = pd.DataFrame(signal)
@@ -100,6 +115,7 @@ def train_data():
     print(Back.BLUE + f'{rates_frame.iloc[-1][[long_filter, short_filter, "close"]]}')
     return rates_frame
 
+#Prints Profit or loss of the open position, There is an easier way to do this, but where's the fun in that
 def get_final_pos(order):
 
     if len(order) != 0:
@@ -112,11 +128,11 @@ def get_final_pos(order):
         current_price = mt5.symbol_info_tick(symbol)
         if order_type == 1:
             current_price = current_price.bid
-            profit = (price - current_price) * volume
+            profit = (price - current_price) * volume * 10000
             print(dt.now(), Back.RED + "The Current Short Position is: ", profit)
         elif order_type == 0:
             current_price = current_price.ask
-            profit = (price - current_price) * volume 
+            profit = (price - current_price) * volume * 10000
             print(dt.now(), Back.GREEN + "The Current Long Position is: ", profit)
         else:
             print(Back.RED + "Some Error In Calculating current Position")
